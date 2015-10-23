@@ -1,0 +1,166 @@
+<html>
+	<head> 
+		<title> Chassis page</title>
+	</head>
+	<link rel="stylesheet" type="text/css" href="graphStyles.css">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script>
+		$(document).ready(function()
+		{
+			var query = window.location.search.substring(1);
+			var params = query.split("&");
+
+			var parts1 = params[0].split("=");
+			var sysengine = decodeURIComponent(parts1[1]);
+
+			getParams(sysengine);
+		});
+
+		function getParams(sysengine)
+		{
+			$("#checkboxList").load(location.href+" #checkboxList>*","");
+			try
+			{
+				csvRequest = new Request(
+		        {
+		            url:sysengine,
+		            onSuccess:function(response)
+		            {
+		                //The response text is available in the 'response' variable
+		                //Set the value of the textarea with the id 'csvResponse' to the response
+		                processRowHeaders(response);
+		            },
+
+	                onFailure: function()
+	                {
+						alert("Incorrect file path");
+	                }
+	            }).send(); //Don't forget to send our request!
+			}
+
+			catch(err)
+			{
+				alert("Incorrect file path");
+			}							
+		}
+
+		function processRowHeaders(response)
+		{
+            var lines = response.split("\n");
+            var paramList = [];
+            	
+            var string = lines[0].split(",");
+            for (var i = 1 ; i < string.length ; i++)
+            {
+            	paramList.push(string[i]);    
+            }
+            viewParameters(paramList);
+		}
+
+		function viewParameters(paramList)
+            {
+            	var inputElement,labelElement;
+            	var uList, listElement;
+            	var listFile, defaultList =[];
+
+            	var listRequest = new Request(
+		            {
+		                url:"DefaultList.txt",
+		                onSuccess:function(response)
+		                {
+		                        //The response text is available in the 'response' variable
+		                        //Set the value of the textarea with the id 'csvResponse' to the response
+		                    populateList(response);
+		                }
+
+		            }).send(); //Don't forget to send our request!
+            
+                    function populateList(response)
+            		{
+		            	defaultList = response.split(",");
+		            
+		            	for (var index = 0  ; index < paramList.length ;index++)
+		            	{             	 
+			            	ulList = document.getElementById('checkboxList');
+
+			              	listElement = document.createElement('li');
+			              	labelElement = document.createElement('label');
+
+				            inputElement = document.createElement('input');
+				            inputElement.type = 'checkbox';
+			      			inputElement.name = "parameter" ;
+			      			inputElement.id = "parameter" + index;
+			      			inputElement.value = paramList[index];
+
+			      			if(defaultList.indexOf(paramList[index]) >= 0)
+			      			{
+			      				inputElement.checked = true;
+			      			}
+			      			
+							labelElement.htmlFor = "id";
+							labelElement.appendChild(document.createTextNode(paramList[index]));
+
+			      			listElement.appendChild(inputElement);
+			      			listElement.appendChild(labelElement);
+
+			      			ulList.appendChild(listElement);
+		      			}
+	      			}
+		           		              
+	            var linebreak = document.createElement("br");
+
+	            var docForm = document.getElementById("myForm");
+	            docForm.appendChild(linebreak);
+	        }	
+
+            function plotFun()
+            {
+            	var checkboxName = "parameter";
+            	var checkboxes = document.querySelectorAll('input[name="' + checkboxName + '"]:checked'), checkBoxList = [];
+            	Array.prototype.forEach.call(checkboxes, function(el) 
+	    		{
+	        		checkBoxList.push(el.value);
+	    		});
+
+	    		var query = window.location.search.substring(1);
+	    		var parts = query.split("&");
+
+				var parameter1 = parts[0].split("=");
+				var fileName = decodeURIComponent(parameter1[1]);
+
+				var parameter2 = parts[1].split("=");
+				var jsonFile = decodeURIComponent(parameter2[1]);
+
+	    		var url_safe_checkBox = encodeURIComponent(checkBoxList);
+	    		var url_safe_fileName = encodeURIComponent(fileName);
+	    		var url_safe_json = encodeURIComponent(jsonFile);
+	    		var url = "http://labdns.mitg-bxb01.cisco.com/ssd/workSpace/Chassis/graphPage.html?list=" + url_safe_checkBox + "&fileName=" + url_safe_fileName + "&json=" + jsonFile; 
+
+	    		var win = window.open(url);
+            }	
+    </script>
+	</head>
+	<body>
+		<h1 align="center" > VzW CLAB CSV PLOTTER </h1>
+		<div id = "contentArea">
+			<table id = "paramTable">
+				<tr>
+					<td>
+						<span>
+							<button id = "charts" onclick="plotFun()"> PLOT CHARTS </button> 
+						</span>
+					</td>
+				</tr>
+			</table>
+			<fieldset class = "group">
+					<ul id = "checkboxList" class = "checkboxes">
+
+					</ul>
+			</fieldset>
+			<form id = "myForm">
+				
+			</form>
+		</div>
+	</body>
+</html>

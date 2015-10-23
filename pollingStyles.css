@@ -1,0 +1,46 @@
+table, th, td 
+{
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+th, td 
+{
+    padding: 5px;
+}
+
+th 
+{
+    text-align: left;
+    background-color: navy;
+    color: white;
+}
+
+tr:nth-child(even)
+{
+	background-color: lightgray;
+}
+
+tr:nth-child(odd)
+{
+	background-color: lightblue;
+}
+
+a
+{
+	color:navy;
+}
+
+h1
+{
+  font-family: Times,serif;
+}
+
+div.header
+{
+  border-style: solid; 
+  border-color: navy;
+  background-color: white;
+  border-height: 20px;
+  border-width: 5px;
+}

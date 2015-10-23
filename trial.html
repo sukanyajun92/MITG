@@ -1,0 +1,193 @@
+<html>
+	<head>
+		<title>
+			Trial.html
+		</title>
+	</head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="pollingStyles.css">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script>
+		$(document).ready(function()
+		{
+			var chassisName, subs, tput_mbps, tput_kpps, ceps,index, sysengine;
+			var table = document.getElementById("cTable");
+			var cell1, cell2, cell3, cell4, cell5, cell6, cell7,cell8,i;
+			var listOfChassis, fileName, fileRequest, obj, csvRequest,path,checkBoxList;
+
+			var listRequest = new Request(
+			{
+			    url:"/html/Chassis/DefaultList.txt",
+			    onSuccess:function(listResponse)
+			    {
+			        populateList(listResponse);
+			    }
+
+			}).send(); //Don't forget to send our request!
+
+		    function populateList(listResponse)
+		    {
+		      	checkBoxList = listResponse.split(",");
+		    }
+           
+			var chassisRequest = new Request(
+			{
+				url:"/tmp/poll/chassis.txt",
+				onSuccess:function(response)
+				{
+				    //The response text is available in the 'response' variable
+				    getChassisList(response);
+				}
+			}).send(); //Don't forget to send our request!
+
+			function getChassisList(response)
+			{
+				listOfChassis = response.split(",");
+				
+				for (i = 0 ; i < listOfChassis.length ; i++)
+				{
+					if(listOfChassis[i].length != 0)
+					{  
+
+						chassisName = listOfChassis[i];
+						fileName = "/tmp/poll/json/" + listOfChassis[i] + ".json";	
+						fileRequest = new Request(
+						{
+							url:fileName,
+							onSuccess:function(fileResponse)
+							{
+							    //The response text is available in the 'response' variable
+							  	parseJSON(fileResponse); 
+							}
+						}).send(); 
+
+						function parseJSON(fileResponse)
+						{
+							obj = JSON.parse(fileResponse);
+							var version = obj.version;
+							var upTime = obj.Uptime;	
+							chassisName = obj.name;
+							path = obj.csv;
+
+							if(path.includes(".com"))
+							{
+								var urlParts = path.trim().split(".com");
+								sysengine = urlParts[1];
+							}
+
+							else
+							{
+								sysengine = path.trim();
+							}
+							
+							var row = table.insertRow(-1);
+							row.id = chassisName;
+							console.log("row id" + row.id);
+							row.className = "success";
+							var url_safe_list = encodeURIComponent(checkBoxList);
+							var url_safe_chassis = encodeURIComponent(row.id);
+
+							var url = "http://csvzw2.mitg-bxb01.cisco.com/html/Chassis/graph.html?list=" + url_safe_list + "&chassis=" + url_safe_chassis; 
+							
+							cell1 = row.insertCell(0);
+							cell1.innerHTML = "<a href='" + url +"' target='_blank'>" + chassisName + "</a>";
+
+							csvRequest = new Request(
+							{
+								url : sysengine,
+								onSuccess:function(csvResponse)
+				                {
+				                    //The response text is available in the 'response' variable
+				                    //Set the value of the textarea with the id 'csvResponse' to the response
+				                   	populateRest(csvResponse);
+				                }
+							}).send();
+
+							function populateRest(csvResponse)
+							{
+								var lines = csvResponse.trim().split("\n");
+								var count  = lines.length;
+								var lastEntry = lines[count-1];    
+
+								var values = lastEntry.split(",");
+								var headers = lines[0].split(",");
+
+								for (var i = 0 ; i < headers.length ; i++)
+								{
+									if(headers[i].localeCompare("TIME") == 0)
+									{
+										cell2 = row.insertCell(1);
+										cell2.innerHTML = values[i];
+									}
+								}
+
+								cell3 = row.insertCell(2);
+								cell3.innerHTML = version;
+
+								cell4 = row.insertCell(3);
+								cell4.innerHTML = upTime;
+
+								for (var i = 0 ; i < headers.length ; i++)
+								{
+									if(headers[i].localeCompare("TOTAL_SUBSCRIBERS") == 0)
+									{
+										cell5 = row.insertCell(4);
+										cell5.innerHTML = values[i];
+									}
+								}
+
+								for (var i = 0 ; i < headers.length ; i++)
+								{
+									if(headers[i].localeCompare("THROUGHPUT_MBPS") == 0)
+									{
+										cell6 = row.insertCell(5);
+										cell6.innerHTML = values[i];
+									}
+								}
+
+								for (var i = 0 ; i < headers.length ; i++)
+								{
+									if(headers[i].localeCompare("THROUGHPUT_KPPS") == 0)
+									{
+										cell7 = row.insertCell(6);
+										cell7.innerHTML = values[i];
+									}
+
+									else if(headers[i].localeCompare("TOTAL_CALLS_CONNECTED_SEC") == 0)
+									{
+										cell8 = row.insertCell(7);
+										cell8.innerHTML = values[i];
+									}					
+								}
+							}
+						}
+					}
+				}
+			}
+		});
+	</script>
+	<body>
+		<div class = "header">
+			<h1 align = "center"> VZW CLAB CHASSIS SUMMARY </h1> 
+		</div>
+		<hr noshade size=4 width="100%">
+		<div id ="chassis" class="table-responsive">
+			<table style="width:100%" id = "cTable">
+			  	<tr>
+				    <th>CHASSIS</th>
+				    <th>TIMESTAMP</th>
+				    <th>VERSION</th>		
+				    <th>UPTIME</th>
+				    <th>TOTAL SUBSCRIBERS</th>
+				    <th>THROUGHPUT MBPS </th>
+				    <th>THROUGHPUT KPPS </th>
+				    <th>TOTAL CALLS CONNECTED PER SEC</th>
+			    </tr>
+			</table>
+		</div>
+	</body>
+</html>

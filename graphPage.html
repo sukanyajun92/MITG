@@ -1,0 +1,259 @@
+<html>
+	<head>
+		<title>graphPage.html </title>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="/html/Chassis/chartStylesCopy.css">
+		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src='/html/Chassis/Chart.js'></script>
+
+		<!--Auto refresh after 10 mins!-->
+		<script>				
+			 setInterval(function()		
+			  {		
+                  window.location.reload();		
+              }, 600000); 		
+		</script>
+		<script>
+			$(document).ready(function()
+			{
+				var obj,version,upTime,chassisName,path,sysengine,runParts,csv,crashes;
+				var diameter_peers;
+				var crashInfo,peerInfo,srpInfo;
+				var srp_state;
+				var query = window.location.search.substring(1);
+				var params = query.split("&");
+				
+				var parameter1 = decodeURIComponent(params[0]);
+				var parameter2 = decodeURIComponent(params[1]);
+				
+				var parts1 = parameter1.split("=");
+				var checkBoxList = parts1[1];
+				var eachCheck = checkBoxList.split(",");
+
+				var parts2 = parameter2.split("=");
+				var chassisName = parts2[1];
+
+				jsonFile = "/tmp/poll/json/" + chassisName + ".json";
+				logFile = "/tmp/poll/log/" + chassisName + ".log";
+
+				var logRequest = new Request(
+				{
+					url : logFile,
+					onSuccess : function(logResponse)
+					{
+						parseLog(logResponse);
+					}
+				}).send();
+
+				function parseLog(logResponse)
+				{
+					var log_entry = logResponse.split("\n\n\n\n#");
+					crashInfo = log_entry[0];
+					peerInfo = log_entry[2];
+					srpInfo = log_entry[1];
+					taskInfo = log_entry[3];
+				}
+
+				var fileRequest = new Request(
+				{
+					url:jsonFile,
+					onSuccess:function(fileResponse)
+					{
+						    //The response text is available in the 'response' variable
+					  	parseJSON(fileResponse); 
+					}
+				}).send(); 
+
+				function parseJSON(fileResponse)
+				{
+					obj = JSON.parse(fileResponse);
+					version = obj.version;
+					upTime = obj.Uptime;	
+					chassisName = obj.name;
+					path = obj.csv;
+					crashes = obj.Crashes;
+					diameter_peers = obj.Diameter_Peers;
+					srp_state = obj.SRP_State;
+					
+					if(path.includes(".com"))
+					{
+						var urlParts = path.split(".com");
+						sysengine = urlParts[1];
+					}
+
+					else
+					{
+						sysengine = path;
+					}
+
+					csv = sysengine.split("/");
+					runParts = csv[csv.length-1].split("_");
+					run = runParts[0] +"_" + runParts[1];
+
+					document.getElementById("chassisName").innerHTML = chassisName;
+					document.getElementById("csv").innerHTML = "CSV : <a href='" + path + "' target='_blank'>" + sysengine + "</a>" ;
+					document.getElementById("Uptime").innerHTML += upTime;
+					document.getElementById("Version").innerHTML += version;
+					document.getElementById("Crashes").innerHTML += "<a href='crashList.php?hello=true&chassis="+ chassisName + "' title='" + crashInfo +"' target='_blank'>" + crashes + "</a>";
+					document.getElementById("diameterPeers").innerHTML += "<a href='DiameterPeers.php?hello=true&chassis="+ chassisName + "' title='" + peerInfo + "' target='_blank'>" + diameter_peers + "</a>";
+
+					document.getElementById("taskRsrc").innerHTML += "<a href='' title='" + taskInfo + "' target='_blank'>" + "Task resources" + "</a>"; 
+					
+					document.getElementById("srpState").innerHTML += "<a href='' title='" + srpInfo + "' target='_blank'>" + srp_state + "</a>";
+
+					var csvRequest = new Request(
+			        {
+			        	//Raw data
+			            url:sysengine,
+			            onSuccess:function(response)
+			            {
+			                //The response text is available in the 'response' variable
+			                //Set the value of the textarea with the id 'csvResponse' to the response
+			                parseFunction(response);
+			            }
+			        }).send(); //Don't forget to send our request!
+				}			
+
+				function parseFunction(response)
+				{
+					//raw data
+					var lines = response.split("\n");
+	               	var timeStamp = [] ;
+	            	var paramValues = []; //this holds the values of the parameters. This is being overwritten for every graph
+	            	var title;
+	            	var csvString,headerList;
+
+	            	headerList = lines[0].split(",");
+	            	for (var i = 1; i < lines.length ; i++)
+	            	{
+	            		csvString = lines[i].split(",");
+	            		var time = csvString[0].split(" ");
+	            		timeStamp.push(time[1])
+	            	}    
+
+	                for (var index = 0 ; index < eachCheck.length ; index ++)
+	                {
+	                	title = eachCheck[index];
+	                	paramValues = new Array();
+	                	for (var l = 1 ;  l < lines.length ; l++)
+	                	{
+	                		var string = lines[l].split(",");
+	                		for (var j = 1 ; j < string.length ; j++)
+	                		{
+	                			if((headerList[j].localeCompare(title)) == 0)
+	                            {
+	                                paramValues.push(string[j]);
+	                            }  
+	                		}
+	                    }              
+
+	                    plotFunction(paramValues,timeStamp,title,index);
+	                }
+				}
+
+	            function plotFunction(paramValues,timeStamp,title,index)
+	            {
+	            	var id, header;
+	            	var tableElement,rowElement,dataElement;
+	            	var listElement, ulList;
+
+	            	id = title + index;
+	            	header = "title" + index;
+
+	            	var plotData = 
+	                {
+	                    labels : timeStamp,
+	                    datasets : 
+	                    [
+	                      
+	                        {
+	                            fillColor : "rgba(151,187,205,1)",
+								strokeColor : "rgba(151,187,205,1)",
+								pointColor : "rgba(151,187,205,1)",
+								pointStrokeColor : "#fff",		
+	                            data : paramValues
+					        }
+	                    ],
+	                }
+
+	                ulList = document.getElementById("graphList");
+
+	                listElement = document.createElement('li');
+	      			titleElement =document.createElement('p');
+	                canvasElement = document.createElement('canvas');
+
+	                titleElement.id = "title" + index;
+	                canvasElement.id = id;
+	                canvasElement.height = 400;
+	                canvasElement.width = 600;
+	                
+	                canvasElement.addEventListener('click',function(evt)
+	                {
+						var ctx = canvasElement.getContext('2d');
+						var newWidth = ctx.canvas.width * 3;
+					    var newHeight = ctx.canvas.height * 3;
+					    
+					    ctx.save();
+					    ctx.translate(((newWidth-ctx.canvas.width)*3), ((newHeight-ctx.canvas.height)*3));
+					    ctx.scale(2, 2);
+					    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+					    ctx.drawImage(canvasElement, 0, 0);
+					    ctx.restore();
+					},false);
+
+	                listElement.appendChild(titleElement);
+	                listElement.appendChild(canvasElement);
+
+	                ulList.appendChild(listElement);
+
+	                document.getElementById(header).innerHTML = title;
+
+	                var newgraph = canvasElement.getContext("2d");
+	                new Chart(newgraph).Line(plotData,{
+	                	showXLabels:5,
+	                	bezierCurve:false,
+	                	responsive:true,
+	                	pointHitDetectionRadius:0
+	                });
+	            }
+
+			});
+		</script>
+	</head>
+	<body>
+		<div class="CSSTableGenerator">
+			<table>
+				<tr> 
+					<td colspan=3> <h3 id = "chassisName"></h3> </td>
+				</tr>
+
+				<tr> 
+					<td> <h5 id = "Version"> Version :  </h5> </td>
+					<td> <h5 id = "Uptime"> Uptime : </h5> </td>
+					<td> <h5 id = "Crashes"> Crashes : </h5> </td>
+				</tr>
+
+				<tr>
+					<td> <h5 id = "diameterPeers"> Diameter Peers (T/O/I/C) : </h5> </td>
+					<td> <h5 id = "taskRsrc"> Task resources : </h5> </td>
+					<td> <h5 id = "srpState"> SRP State : </h5>  </td>
+				</tr>
+
+			</table>	
+		</div>
+		<br><br>
+		<fieldset class = "group">
+			<div id="plotGraphsHere">
+				<ul id = "graphList" class = "charts">
+
+				</ul>
+			</div>
+		</fieldset>
+
+		<div id = "sysengine">
+			<h5 id = "csv"></h5> 
+		</div>
+
+	</body>
+</html>

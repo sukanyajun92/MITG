@@ -1,0 +1,155 @@
+fieldset.group  { 
+  margin: 0; 
+  padding: 0; 
+  margin-bottom: 1.25em; 
+  padding: .125em; 
+} 
+
+ul.charts li { 
+  border: 1px transparent solid; 
+  display:inline-block;
+  width:33%;  
+} 
+
+ul.charts li canvas { 
+  margin-right:20px; 
+} 
+
+ul.charts  { 
+  margin: 0; 
+  padding: 0;
+  margin-left: ; 
+  list-style: none; 
+} 
+
+canvas
+{
+    position:relative;
+    top:0;
+    left:0;
+}
+
+h5,p
+{
+  font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 200;
+  line-height: 1px;
+}
+
+ .CSSTableGenerator {
+  margin:0px;padding:0px;
+  width:100%;
+
+  box-shadow: 10px 10px 5px #888888;
+  border:1px solid #000000;
+  
+  -moz-border-radius-bottomleft:15px;
+  -webkit-border-bottom-left-radius:15px;
+  border-bottom-left-radius:15px;
+  
+  -moz-border-radius-bottomright:15px;
+  -webkit-border-bottom-right-radius:15px;
+  border-bottom-right-radius:15px;
+  
+  -moz-border-radius-topright:15px;
+  -webkit-border-top-right-radius:15px;
+  border-top-right-radius:15px;
+  
+  -moz-border-radius-topleft:15px;
+  -webkit-border-top-left-radius:15px;
+  border-top-left-radius:15px;
+}.CSSTableGenerator table{
+    border-collapse: collapse;
+        border-spacing: 0;
+  width:100%;
+  margin:0px;padding:0px;
+}.CSSTableGenerator tr:last-child td:last-child {
+  -moz-border-radius-bottomright:15px;
+  -webkit-border-bottom-right-radius:15px;
+  border-bottom-right-radius:15px;
+}
+.CSSTableGenerator table tr:first-child td:first-child {
+  -moz-border-radius-topleft:15px;
+  -webkit-border-top-left-radius:15px;
+  border-top-left-radius:15px;
+}
+.CSSTableGenerator table tr:first-child td:last-child {
+  -moz-border-radius-topright:15px;
+  -webkit-border-top-right-radius:15px;
+  border-top-right-radius:15px;
+}.CSSTableGenerator tr:last-child td:first-child{
+  -moz-border-radius-bottomleft:15px;
+  -webkit-border-bottom-left-radius:15px;
+  border-bottom-left-radius:15px;
+}.CSSTableGenerator tr:hover td{
+  
+}
+.CSSTableGenerator tr:nth-child(odd){ background-color:#aad4ff; }
+.CSSTableGenerator tr:nth-child(even)    { background-color:#ffffff; }.CSSTableGenerator td{
+  vertical-align:text-bottom;
+  border:1px solid black;
+  border-width:0px 0px 0px 0px;
+  text-align:left;
+  padding-top:25px;
+  padding-right:0px;
+  font-size:11px;
+  font-family:Arial;
+  font-weight:normal;
+  color:#000000;
+}.CSSTableGenerator tr:last-child td{
+  border-width:0px 0px 0px 0px;
+}.CSSTableGenerator tr td:last-child{
+  border-width:0px 0px 0px 0px;
+}.CSSTableGenerator tr:last-child td:last-child{
+  border-width:0px 0px 0px 0px;
+}
+.CSSTableGenerator tr:first-child td{
+    background:-o-linear-gradient(bottom, #005fbf 5%, #003f7f 100%);  background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #005fbf), color-stop(1, #003f7f) );
+  background:-moz-linear-gradient( center top, #005fbf 5%, #003f7f 100% );
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#005fbf", endColorstr="#003f7f");  background: -o-linear-gradient(top,#005fbf,003f7f);
+  background-color:#005fbf;
+  border:0px solid #000000;
+  text-align:center;
+  padding-top:25px;
+  padding-bottom:0px;
+  vertical-align:text-bottom;
+  border-width:0px 0px 0px 0px;
+  font-size:20px;
+  font-family:Arial;
+  font-weight:bold;
+  color:#ffffff;
+}
+.CSSTableGenerator tr:first-child:hover td{
+  background:-o-linear-gradient(bottom, #005fbf 5%, #003f7f 100%);  background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #005fbf), color-stop(1, #003f7f) );
+  background:-moz-linear-gradient( center top, #005fbf 5%, #003f7f 100% );
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#005fbf", endColorstr="#003f7f");  background: -o-linear-gradient(top,#005fbf,003f7f);
+
+  background-color:#005fbf;
+}
+.CSSTableGenerator tr:first-child td:first-child{
+  border-width:0px 0px 0px 0px;
+}
+.CSSTableGenerator tr:first-child td:last-child{
+  border-width:0px 0px 0px 0px;
+}
+
+ul.chartOptions
+{
+  margin: 0; 
+  padding: 0; 
+  margin-bottom: 1.25em; 
+  padding: .125em; 
+  margin-left: ; 
+  list-style: none; 
+}
+
+ul.chartOptions li { 
+  border-width: 0.1em; 
+  border-color: lightblue;
+  border-style: solid;
+  display:inline-block;
+  width:33%;  
+} 

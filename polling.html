@@ -1,0 +1,162 @@
+<html>
+	<head>
+		<title>
+			Polling.html
+		</title>
+	</head>
+	<link rel="stylesheet" type="text/css" href="pollingStyles.css">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script>
+		$(document).ready(function()
+		{
+			var chassisName, upTime, version, subs, tput_mbps, tput_kpps, ceps,index, sysengine;
+			var table = document.getElementById("cTable");
+			var cell1, cell2, cell3, cell4, cell5, cell6, cell7,cell8,i;
+			var listOfChassis, fileName, fileRequest, obj, csvRequest,path;
+
+			var chassisRequest = new Request(
+			{
+				url:"chassisList.txt",
+				onSuccess:function(response)
+				{
+				    //The response text is available in the 'response' variable
+				    getChassisList(response);
+				}
+			}).send(); //Don't forget to send our request!
+
+			function getChassisList(response)
+			{
+				listOfChassis = response.split(",");
+				for (i = 0 ; i < listOfChassis.length ; i++)
+				{
+					fileName = "/ssd/workSpace/Chassis/JSON/" + listOfChassis[i] + ".json";		
+					fileRequest = new Request(
+					{
+						url:fileName,
+						onSuccess:function(fileResponse)
+						{
+						    //The response text is available in the 'response' variable
+						  	parseJSON(fileResponse); 
+						}
+					}).send(); 
+
+					function parseJSON(fileResponse)
+					{
+						obj = JSON.parse(fileResponse);
+						version = obj.version;
+						upTime = obj.Uptime;	
+						chassisName = obj.name;
+						path = obj.csv;
+
+						if(path.includes(".com"))
+						{
+							var urlParts = path.split(".com");
+							sysengine = urlParts[1];
+						}
+
+						else
+						{
+							sysengine = path;
+						}
+
+						var row = table.insertRow(1);
+						var url_safe_csv = encodeURIComponent(sysengine);
+						var url_safe_json = encodeURIComponent(fileName);
+						var url = "http://labdns.mitg-bxb01.cisco.com/ssd/workSpace/Chassis/chassis.html?sysEngine=" + url_safe_csv + "&jsonFileName=" + url_safe_json; 
+
+						// Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+						cell1 = row.insertCell(0);
+						cell1.innerHTML = "<a href='" + url + "' target='_blank'>" + chassisName + "</a>";
+						
+						csvRequest = new Request(
+						{
+							url : sysengine,
+							onSuccess:function(csvResponse)
+			                {
+			                    //The response text is available in the 'response' variable
+			                    //Set the value of the textarea with the id 'csvResponse' to the response
+			                   	populateRest(csvResponse);
+			                }
+						}).send();
+
+						function populateRest(csvResponse)
+						{
+							var lines = csvResponse.split("\n");
+							var count  = lines.length;
+							var lastEntry = lines[count-2];    
+
+							var values = lastEntry.split(",");
+							var headers = lines[0].split(",");
+
+							for (var i = 0 ; i < headers.length ; i++)
+							{
+								if(headers[i].localeCompare("TIME") == 0)
+								{
+									cell2 = row.insertCell(1);
+									cell2.innerHTML = values[i];
+								}
+							}
+
+							cell3 = row.insertCell(2);
+							cell3.innerHTML = version;
+
+							cell4 = row.insertCell(3);
+							cell4.innerHTML = upTime;
+
+							for (var i = 0 ; i < headers.length ; i++)
+							{
+								if(headers[i].localeCompare("TOTAL_SUBSCRIBERS") == 0)
+								{
+									cell5 = row.insertCell(4);
+									cell5.innerHTML = values[i];
+								}
+							}
+
+							for (var i = 0 ; i < headers.length ; i++)
+							{
+								if(headers[i].localeCompare("THROUGHPUT_MBPS") == 0)
+								{
+									cell6 = row.insertCell(5);
+									cell6.innerHTML = values[i];
+								}
+							}
+
+							for (var i = 0 ; i < headers.length ; i++)
+							{
+								if(headers[i].localeCompare("THROUGHPUT_KPPS") == 0)
+								{
+									cell7 = row.insertCell(6);
+									cell7.innerHTML = values[i];
+								}
+
+								else if(headers[i].localeCompare("TOTAL_CALLS_CONNECTED_SEC") == 0)
+								{
+									cell8 = row.insertCell(7);
+									cell8.innerHTML = values[i];
+								}					
+							}
+						}
+					}
+				}
+			}
+		});
+	</script>
+	<body>
+		<h1 align = "center"> VZW CLAB CHASSIS SUMMARY </h1> 
+		<div id ="chassis">
+			<table style="width:100%" id = "cTable">
+			  <tr>
+			    <th>Chassis</th>
+			    <th>Timestamp</th>
+			    <th>Version</th>		
+			    <th>Uptime</th>
+			    <th>Total_Subscribers</th>
+			    <th>Throughput_Mbps </th>
+			    <th>Throughput_Kpps </th>
+			    <th>Total_calls_connected_sec</th>
+			  </tr>
+			</table>
+		</div>
+	</body>
+</html>
