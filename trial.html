@@ -16,12 +16,12 @@
 		{
 			var chassisName, subs, tput_mbps, tput_kpps, ceps,index, sysengine;
 			var table = document.getElementById("cTable");
-			var cell1, cell2, cell3, cell4, cell5, cell6, cell7,cell8,i;
+			var cell1, cell2, cell3, cell4, cell5, cell6, cell7,cell8,cell9,i;
 			var listOfChassis, fileName, fileRequest, obj, csvRequest,path,checkBoxList;
 
 			var listRequest = new Request(
 			{
-			    url:"/html/Chassis/DefaultList.txt",
+			    url:"DefaultList.txt",
 			    onSuccess:function(listResponse)
 			    {
 			        populateList(listResponse);
@@ -36,7 +36,7 @@
            
 			var chassisRequest = new Request(
 			{
-				url:"/tmp/poll/chassis.txt",
+				url:"chassisListCopy.txt",
 				onSuccess:function(response)
 				{
 				    //The response text is available in the 'response' variable
@@ -48,13 +48,14 @@
 			{
 				listOfChassis = response.split(",");
 				
+				console.log(listOfChassis + " ");
 				for (i = 0 ; i < listOfChassis.length ; i++)
 				{
 					if(listOfChassis[i].length != 0)
 					{  
 
 						chassisName = listOfChassis[i];
-						fileName = "/tmp/poll/json/" + listOfChassis[i] + ".json";	
+						fileName = "/apache2-default/workspace/json/" + listOfChassis[i] + ".json";	
 						fileRequest = new Request(
 						{
 							url:fileName,
@@ -91,14 +92,14 @@
 							var url_safe_list = encodeURIComponent(checkBoxList);
 							var url_safe_chassis = encodeURIComponent(row.id);
 
-							var url = "http://csvzw2.mitg-bxb01.cisco.com/html/Chassis/graph.html?list=" + url_safe_list + "&chassis=" + url_safe_chassis; 
+							var url = "http://vzwperf1.mitg-bxb01.cisco.com/apache2-default/workspace/graph.html?list=" + url_safe_list + "&chassis=" + url_safe_chassis; 
 							
 							cell1 = row.insertCell(0);
 							cell1.innerHTML = "<a href='" + url +"' target='_blank'>" + chassisName + "</a>";
 
 							csvRequest = new Request(
 							{
-								url : sysengine,
+								url : "/apache2-default/workspace"+sysengine,
 								onSuccess:function(csvResponse)
 				                {
 				                    //The response text is available in the 'response' variable
@@ -161,8 +162,78 @@
 									{
 										cell8 = row.insertCell(7);
 										cell8.innerHTML = values[i];
-									}					
+									}	
 								}
+								var div = document.createElement('div');
+								div.id = "list"+row.id;
+								div.addClass('dropdown-check-list');
+
+								var span = document. createElement('span');
+								span.id = "anchor"+row.id;
+								span.addClass("anchor");
+								span.appendChild( document.createTextNode("Select parameters") );
+
+								div.appendChild(span);
+
+								var dropDown = document.createElement('ul');
+								dropDown.id = "items"+row.id;
+								dropDown.addClass('options');
+
+								var optionList , check, label;
+
+								cell9 = row.insertCell(8);
+								for (var i = 1 ; i < headers.length ; i++)
+								{
+									
+									optionList = document.createElement('li');
+									//optionList.list-type = 'none';
+
+									check = document.createElement('input');
+									label = document.createElement('label');
+
+									check.id = headers[i];
+									check.type = "checkbox";
+									check.name = "options";
+									check.value = headers[i];
+
+									label.htmlFor = "id" + i;
+									label.appendChild(document.createTextNode(headers[i]));
+
+									optionList.appendChild(check);
+									optionList.appendChild(label);
+									dropDown.appendChild(optionList);
+								}	
+								div.appendChild(dropDown);								
+
+								cell9.appendChild(div);	
+
+								var checkList = document.getElementById('list' + row.id);
+								var items = document.getElementById('items' + row.id);
+
+								var anchor = "anchor" + row.id;
+								console.log("anchor = " + anchor);
+
+						        checkList.getElementsByClassName('anchor')[0].onclick = function (evt) 
+						        {
+						            if (items.classList.contains('visible'))
+						            {
+						                items.classList.remove('visible');
+						                items.style.display = "none";
+						            }
+						            
+						            else
+						            {
+						                items.classList.add('visible');
+						                items.style.display = "block";
+						            }
+						            
+						            
+						        }
+
+						        items.onblur = function(evt) 
+						        {
+						            items.classList.remove('visible');
+						        }		
 							}
 						}
 					}
@@ -186,6 +257,7 @@
 				    <th>THROUGHPUT MBPS </th>
 				    <th>THROUGHPUT KPPS </th>
 				    <th>TOTAL CALLS CONNECTED PER SEC</th>
+				    <th>PARAMETERS </th>
 			    </tr>
 			</table>
 		</div>
