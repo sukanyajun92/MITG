@@ -3,10 +3,10 @@
 		<title>graph.html </title>
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/mootools/1.2.4/mootools-yui-compressed.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="/html/Chassis/chartStylesCopy.css">
+		<link rel="stylesheet" type="text/css" href="chartStylesCopy.css">
 		<!--<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">!-->
 		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-		<script src='/html/Chassis/Chart.js'></script>
+		<script src='Chart.js'></script>
 		<script>
 			 setInterval(function()
 			  {
@@ -36,8 +36,8 @@
 				var parts2 = parameter2.split("=");
 				var chassisName = parts2[1];
 
-				jsonFile = "/tmp/poll/json/" + chassisName + ".json";
-				logFile = "/tmp/poll/log/" + chassisName + ".log";
+				jsonFile = "/apache2-default/workspace/json/" + chassisName + ".json";
+				logFile = "/apache2-default/workspace/log/" + chassisName + ".log";
 
 				var logRequest = new Request(
 				{
@@ -70,10 +70,9 @@
 						color = "red";
 					}
 
-					console.log("color = " + color);
-					circle = '<circle cx="15" cy="140" r="8" stroke="black" stroke-width="2" fill="' + color +'"></circle>';
-					task = "<svg>" + circle + "</svg>";
-					console.log("task = " + task);
+					circle = '<circle cx="205" cy="65" r="8" stroke="black" stroke-width="2" fill="' + color +'"></circle>';
+					text = '<text x="90" y="70" font-family="Arial-black"  font-size="12px" >Task status : </text>';
+					task = "<svg>" + text + circle + "</svg>";
 				}
 
 				var fileRequest = new Request(
@@ -92,11 +91,9 @@
 					version = obj.version;
 					upTime = obj.Uptime;	
 					chassisName = obj.name;
-					console.log(chassisName);
 					path = obj.csv;
 					crashes = obj.Crashes;
 					diameter_peers = obj.Diameter_Peers;
-					console.log(diameter_peers);
 					srp_state = obj.SRP_State;
 
 					if(path.includes(".com"))
@@ -127,7 +124,7 @@
 					var csvRequest = new Request(
 			        {
 			        	//Raw data
-			            url:sysengine,
+			            url:"/apache2-default/workspace/" + sysengine,
 			            onSuccess:function(response)
 			            {
 			                //The response text is available in the 'response' variable
@@ -145,10 +142,10 @@
 	            	var paramValues = []; //this holds the values of the parameters. This is being overwritten for every graph
 	            	var title;
 	            	var csvString;
-
+	    
 	            	headerList = lines[0].split(",");
 	            	$("#selectionList").load(location.href+" #selectionList>*","");
-					//console.log("Value of headerList = " + headerList);
+
 					uElement =listElement = inputElement = labelElement = null;
 					for (var h = 1; h < headerList.length ; h++)
 		            {
@@ -180,15 +177,48 @@
 		    		{
 		        		checkList.push(el.value);
 		    		});
-
-		    		console.log("check list = " + checkList);
 	            	
+	            	var sessionDiscReasons = [];
 	            	for (var i = 1; i < lines.length ; i++)
 	            	{
 	            		csvString = lines[i].split(",");
 	            		var time = csvString[0].split(" ");
-	            		timeStamp.push(time[1])
+	            		timeStamp.push(time[1]);
+
+	            		var lastEntry = lines[lines.length-2].split(",");
+	            		for (var j = 1 ; j< lastEntry.length ; j++)
+	            		{
+	            			if(headerList[j].localeCompare("SESSION_DISC_REASON") == 0)
+	            			{
+	            				sessionDiscReasons.push(lastEntry[j]);
+	            			}
+	            		}
 	            	}    
+
+	              	var max = 0 ,reason, numOfDisconnects;
+	            	var session_length = sessionDiscReasons.length;
+	            	for (var s = 0 ; s < session_length ; s++)
+	            	{
+	            		var eachEntry = sessionDiscReasons[s].split("|");
+
+	            		for (var j = 0 ; j < eachEntry.length ; j++)
+	            		{
+	            			each = eachEntry[j].split(";");
+	            			if (max < each[2])
+		            		{
+		            			reason = each[0];
+		            			numOfDisconnects = each[1];
+		            			max = each[2];
+		            		}
+
+		            		else
+		            		{
+		            			continue;
+		            		}
+	            		}   		
+	               	}
+	            	
+	            	document.getElementById("SessionDiscReason").innerHTML += "<a href='' title='" + sessionDiscReasons + "'>" + reason + " | " + numOfDisconnects + " | " + max + "</a>"; 
 
 	                for (var index = 0 ; index < eachCheck.length ; index ++)
 	                {
@@ -201,11 +231,10 @@
 	                		{
 	                			if((headerList[j].localeCompare(title)) == 0)
 		                        {
-		                                paramValues.push(string[j]);
+		                            paramValues.push(string[j]);
 		                        }  
 	                		}
 	                    }              
-
 	                    plotFunction(paramValues,timeStamp,title,index);
 	                }
 				}
@@ -276,49 +305,6 @@
 	                });
 	            }
 			});
-			function showBox()
-			{
-				//$("#selectionList").load(location.href+" #selectionList>*","");
-				//console.log("Value of headerList = " + headerList);
-				/*uElement =listElement = inputElement = labelElement = null;
-				for (var h = 1; h < headerList.length ; h++)
-	            {
-	            	uElement = document.getElementById("selectionList");
-	            	listElement = document.createElement('li');
-		            inputElement = document.createElement('input');
-		            labelElement = document.createElement('label');
-
-		            inputElement.type = 'checkbox';
-				  	inputElement.name = "parameter" ;
-				  	inputElement.id = "parameter" + h;
-				   	inputElement.value = headerList[h];
-
-		      		if(checkBoxList.indexOf(headerList[h]) >= 0)
-		      		{
-		      			inputElement.checked = true;
-		      		}
-
-		      		labelElement.htmlFor = "id" + h;
-					labelElement.appendChild(document.createTextNode(headerList[h]));
-
-		      		listElement.appendChild(inputElement);
-		      		listElement.appendChild(labelElement);	
-		      		uElement.appendChild(listElement);			              	
-	            }*/
-	            uElement = document.getElementById("selectionList");
-
-	            if (!expanded) 
-	            {
-            		uElement.style.display = "block";
-            		expanded = true;
-        		} 
-
-        		else 
-        		{
-            		uElement.style.display = "none";
-            		expanded = false;
-        		}
-			}
 		</script>
 		<script>
 			function showCoords(event) 
@@ -345,20 +331,21 @@
 
 				<tr>
 					<td> <h5 id = "diameterPeers"> Diameter Peers (T/O/I/C) : </h5> </td>
-					<!--<td> <h5> Task Status : </h5> </td>!-->
-					<td> <h5 id = "taskRsrc" onclick = "showCoords(event)"> Task status: </h5> </td>
+					<td  id = "taskRsrc"></td>
 					<td> <h5 id = "srpState"> SRP State : </h5>  </td>
+				</tr>
+
+				<tr>
+					<td> <h5 id = "SessionDiscReason"> Session disconnect reason :</h5> </td>
+					<td> </td>
+					<td> </td>
 				</tr>
 			</table>	
 		</div>
 		<br><br>
 
 		<div>
-			<div class="selectBox" onclick = "showBox()">
-	            <select>
-	            	<option> Select the parameters </option>           
-	            </select>
-
+			<div class="selectBox">
 	        	<div>
 	        		<ul id = "selectionList" class = "chartOptions">
 	        	</div>
