@@ -164,76 +164,6 @@
 										cell8.innerHTML = values[i];
 									}	
 								}
-								var div = document.createElement('div');
-								div.id = "list"+row.id;
-								div.addClass('dropdown-check-list');
-
-								var span = document. createElement('span');
-								span.id = "anchor"+row.id;
-								span.addClass("anchor");
-								span.appendChild( document.createTextNode("Select parameters") );
-
-								div.appendChild(span);
-
-								var dropDown = document.createElement('ul');
-								dropDown.id = "items"+row.id;
-								dropDown.addClass('options');
-
-								var optionList , check, label;
-
-								cell9 = row.insertCell(8);
-								for (var i = 1 ; i < headers.length ; i++)
-								{
-									
-									optionList = document.createElement('li');
-									//optionList.list-type = 'none';
-
-									check = document.createElement('input');
-									label = document.createElement('label');
-
-									check.id = headers[i];
-									check.type = "checkbox";
-									check.name = "options";
-									check.value = headers[i];
-
-									label.htmlFor = "id" + i;
-									label.appendChild(document.createTextNode(headers[i]));
-
-									optionList.appendChild(check);
-									optionList.appendChild(label);
-									dropDown.appendChild(optionList);
-								}	
-								div.appendChild(dropDown);								
-
-								cell9.appendChild(div);	
-
-								var checkList = document.getElementById('list' + row.id);
-								var items = document.getElementById('items' + row.id);
-
-								var anchor = "anchor" + row.id;
-								console.log("anchor = " + anchor);
-
-						        checkList.getElementsByClassName('anchor')[0].onclick = function (evt) 
-						        {
-						            if (items.classList.contains('visible'))
-						            {
-						                items.classList.remove('visible');
-						                items.style.display = "none";
-						            }
-						            
-						            else
-						            {
-						                items.classList.add('visible');
-						                items.style.display = "block";
-						            }
-						            
-						            
-						        }
-
-						        items.onblur = function(evt) 
-						        {
-						            items.classList.remove('visible');
-						        }		
 							}
 						}
 					}
@@ -257,8 +187,7 @@
 				    <th>THROUGHPUT MBPS </th>
 				    <th>THROUGHPUT KPPS </th>
 				    <th>TOTAL CALLS CONNECTED PER SEC</th>
-				    <th>PARAMETERS </th>
-			    </tr>
+				</tr>
 			</table>
 		</div>
 	</body>
